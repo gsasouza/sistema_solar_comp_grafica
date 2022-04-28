@@ -28,6 +28,9 @@ if __name__ == '__main__':
     sun = Sun()
     sun.prepare(program_id)
 
+    mars = Mars()
+    mars.prepare(program_id)
+
     earth = Earth()
     earth.prepare(program_id)
 
@@ -47,9 +50,9 @@ if __name__ == '__main__':
         # cylinder.draw(program_id, np.identity(4))
         #
         earth.draw_planet(program_id, angle)
+        sun.draw_planet(program_id, angle)
 
         mars.draw_planet(program_id, angle)
-        sun.draw_planet(program_id, angle)
 
         glfw.swap_buffers(window)
 

@@ -93,7 +93,7 @@ class Sphere:
         glVertexAttribPointer(uv, 2, GL_FLOAT, False, stride, ctypes.c_void_p(12))
 
     def draw(self, program_id, t_mat):
-        glActiveTexture(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, self.texture_id)
         glBindBuffer(GL_ARRAY_BUFFER, self.buffer)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)

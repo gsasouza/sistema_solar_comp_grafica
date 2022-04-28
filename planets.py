@@ -16,6 +16,7 @@ class Earth(Sphere):
             rotate_x(angle)
         ]))
 
+
 class Mars(Sphere):
     def __init__(self):
         super().__init__(load_texture('textures/2k_mars.jpg'))
