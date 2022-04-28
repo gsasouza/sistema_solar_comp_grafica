@@ -39,3 +39,19 @@ class Sun(Sphere):
             scale(0.35, 0.35, 0.35),
             rotate_y(270)
         ]))
+
+
+class Blackhole(Sphere):
+    def __init__(self):
+        self.size = 0.01
+        self.start = False
+        super().__init__(load_texture('textures/black.jpg'))
+
+    def draw_planet(self, program_id, angle):
+        if self.matrix[0][0] < 25:
+            self.matrix = apply_transformations([self.matrix, scale(1.1, 1.1, 1.1)])
+
+        Sphere.draw(self, program_id, apply_transformations([
+            scale(self.size, self.size, self.size),
+            translate(0, 0, -1)
+        ]))

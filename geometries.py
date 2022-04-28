@@ -2,6 +2,7 @@ import math
 import numpy as np
 from OpenGL.GL import *
 import random
+from transform_matrices import apply_transformations, translate
 
 
 class Sphere:
@@ -11,7 +12,12 @@ class Sphere:
         self.texture_id = texture_id
         self.position = None
         self.vertices = self.create()
+        self.vao = None
         self.buffer = None
+        self.matrix = np.identity(4);
+
+    def set_matrix(self, matrix):
+        self.matrix = matrix
 
     def get_sphere_coordinates_by_angle(self, u, v, r, s, t):
         x = r * math.sin(v) * math.cos(u)
@@ -72,54 +78,63 @@ class Sphere:
         return vertices
 
     def prepare(self, program_id):
+
+        # Create VAO
+        self.vao = glGenVertexArrays(1)
         self.buffer = glGenBuffers(1)
-        # Make this buffer the default one
+        glBindVertexArray(self.vao)
         glBindBuffer(GL_ARRAY_BUFFER, self.buffer)
 
         glBufferData(GL_ARRAY_BUFFER, self.vertices.nbytes, self.vertices, GL_DYNAMIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, self.buffer)
 
+        # Enable vertex attributes
         stride = self.vertices.strides[0]
 
         position = glGetAttribLocation(program_id, "position")
-
         glEnableVertexAttribArray(position)
         glVertexAttribPointer(position, 3, GL_FLOAT, False, stride, ctypes.c_void_p(0))
 
         uv = glGetAttribLocation(program_id, "in_uv")
-
         glEnableVertexAttribArray(uv)
-
         glVertexAttribPointer(uv, 2, GL_FLOAT, False, stride, ctypes.c_void_p(12))
+        glBindVertexArray(0)
 
     def draw(self, program_id, t_mat):
+
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, self.texture_id)
-        glBindBuffer(GL_ARRAY_BUFFER, self.buffer)
+        glBindVertexArray(self.vao)
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
-        glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE, t_mat)
+        glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE,
+                           apply_transformations([t_mat, self.matrix]))
         texture_sampler = glGetUniformLocation(program_id, "texture_sampler")
-        glUniform1i(texture_sampler, 0);
+
+        glUniform1i(texture_sampler, 0)
 
         for triangle in range(0, len(self.vertices), 3):
             glDrawArrays(GL_TRIANGLES, triangle, 5)
 
+        glBindVertexArray(0);
+
 
 class Cube:
-    def __init__(self, texture_id):
+    def __init__(self):
         self.offset = 0
         self.stride = 0
-        self.texture_id = texture_id
         self.position = None
         self.vertices = self.create()
         self.buffer = None
+        self.vao = None
+        self.matrix = translate(-1 + 2 * np.random.rand(), -1 + 2 * np.random.rand(), -1 + 2 * np.random.rand()),
 
     def create(self):
-        vertices = np.zeros(24, [("position", np.float32, 5)])
+        vertices = np.zeros(24, [("position", np.float32, 3)])
         vertices['position'] = [
             # Face 1 do Cubo (vértices do quadrado)
-            (-0.5, -0.5, +0.5, ),
+            (-0.5, -0.5, +0.5),
             (+0.5, -0.5, +0.5),
             (-0.5, +0.5, +0.5),
             (+0.5, +0.5, +0.5),
@@ -154,10 +169,13 @@ class Cube:
             (-0.5, +0.5, -0.5),
             (+0.5, +0.5, -0.5)
         ]
+        return vertices
 
     def prepare(self, program_id):
+        # Create VAO
+        self.vao = glGenVertexArrays(1)
         self.buffer = glGenBuffers(1)
-        # Make this buffer the default one
+        glBindVertexArray(self.vao)
         glBindBuffer(GL_ARRAY_BUFFER, self.buffer)
 
         glBufferData(GL_ARRAY_BUFFER, self.vertices.nbytes, self.vertices, GL_DYNAMIC_DRAW)
@@ -166,17 +184,32 @@ class Cube:
         stride = self.vertices.strides[0]
 
         position = glGetAttribLocation(program_id, "position")
-
         glEnableVertexAttribArray(position)
         glVertexAttribPointer(position, 3, GL_FLOAT, False, stride, ctypes.c_void_p(0))
+        glBindVertexArray(0)
 
-        uv = glGetAttribLocation(program_id, "in_uv")
+    def draw(self, program_id, t_mat=np.identity(4)):
+        glBindVertexArray(self.vao)
 
-        glEnableVertexAttribArray(uv)
+        glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE,
+                           apply_transformations([self.matrix, t_mat]))
 
-        glVertexAttribPointer(uv, 2, GL_FLOAT, False, stride, ctypes.c_void_p(12))
+        glUniform4f(glGetUniformLocation(program_id, "color"), 1, 1, 1, 1.0)
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
+        glUniform4f(glGetUniformLocation(program_id, "color"), 0.851, 0.957, 1.0, 1.0)
+        glDrawArrays(GL_TRIANGLE_STRIP, 4, 4)
+        glUniform4f(glGetUniformLocation(program_id, "color"), 0.816, 1.0, 1.0, 1.0)
+        glDrawArrays(GL_TRIANGLE_STRIP, 8, 4)
+        glUniform4f(glGetUniformLocation(program_id, "color"), 0.8, 0.8, 0.8, 1.0)
+        glDrawArrays(GL_TRIANGLE_STRIP, 12, 4)
+        glUniform4f(glGetUniformLocation(program_id, "color"), 0.569, 0.678, 0.714, 1.0)
+        glDrawArrays(GL_TRIANGLE_STRIP, 16, 4)
+        glUniform4f(glGetUniformLocation(program_id, "color"), 0.8, 0.9, 0.9, 1.0)
+        glDrawArrays(GL_TRIANGLE_STRIP, 20, 4)
+        glBindVertexArray(0)
 
-class Cylinder():
+
+class Cylinder:
     def __init__(self):
         self.offset = 0
         self.stride = 0
@@ -267,6 +300,7 @@ class Cylinder():
 
         glEnableVertexAttribArray(self.position)
         glVertexAttribPointer(self.position, 3, GL_FLOAT, False, stride, ctypes.c_void_p(0))
+        glBindVertexArray(0)
 
     def draw(self, program_id, t_mat):
         glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE, t_mat)
