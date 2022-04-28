@@ -27,6 +27,9 @@ if __name__ == '__main__':
     earth = Earth()
     earth.prepare(program_id)
 
+    mars = Mars()
+    mars.prepare(program_id)
+
     glfw.show_window(window)
     glEnable(GL_DEPTH_TEST)
 
@@ -42,8 +45,7 @@ if __name__ == '__main__':
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         earth.draw_planet(program_id, angle)
-
-
+        mars.draw_planet(program_id, angle)
         sun.draw_planet(program_id, angle)
 
         glfw.swap_buffers(window)

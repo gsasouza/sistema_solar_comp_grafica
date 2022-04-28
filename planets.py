@@ -16,6 +16,18 @@ class Earth(Sphere):
             rotate_x(angle)
         ]))
 
+class Mars(Sphere):
+    def __init__(self):
+        super().__init__(load_texture('textures/2k_mars.jpg'))
+
+    def draw_planet(self, program_id, angle):
+        Sphere.draw(self, program_id, apply_transformations([
+            rotate_z(angle),
+            translate(-0.8, 0, 0),
+            scale(0.08, 0.08, 0.08),
+            rotate_y(270)
+        ]))
+
 
 class Sun(Sphere):
     def __init__(self):
