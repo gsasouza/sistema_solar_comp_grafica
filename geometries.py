@@ -2,7 +2,7 @@ import math
 import numpy as np
 from OpenGL.GL import *
 import random
-from transform_matrices import apply_transformations, translate
+from transform_matrices import apply_transformations, translate, scale
 
 
 class Sphere:
@@ -109,7 +109,7 @@ class Sphere:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
         glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE,
-                           apply_transformations([t_mat, self.matrix]))
+                           apply_transformations([self.matrix, t_mat, ]))
         texture_sampler = glGetUniformLocation(program_id, "texture_sampler")
 
         glUniform1i(texture_sampler, 0)
@@ -128,7 +128,10 @@ class Cube:
         self.vertices = self.create()
         self.buffer = None
         self.vao = None
-        self.matrix = translate(-1 + 2 * np.random.rand(), -1 + 2 * np.random.rand(), -1 + 2 * np.random.rand()),
+        self.matrix = apply_transformations([
+            translate(-1 + 2 * np.random.rand(), -1 + 2 * np.random.rand(), -1),
+            scale(0.02, 0.02, 0.02)
+        ])
 
     def create(self):
         vertices = np.zeros(24, [("position", np.float32, 3)])
@@ -216,6 +219,7 @@ class Cylinder:
         self.color = None
         self.texture_id = None
         self.position = None
+        self.vao = None
         self.vertices = self.create()
 
     def get_cylinder_coordinates_by_angle(self, u, h, r):
@@ -286,7 +290,8 @@ class Cylinder:
 
     def prepare(self, program_id):
         buffer = glGenBuffers(1)
-        # Make this buffer the default one
+        self.vao = glGenVertexArrays(1)
+        glBindVertexArray(self.vao)
         glBindBuffer(GL_ARRAY_BUFFER, buffer)
 
         glBufferData(GL_ARRAY_BUFFER, self.vertices.nbytes, self.vertices, GL_DYNAMIC_DRAW)
@@ -303,6 +308,7 @@ class Cylinder:
         glBindVertexArray(0)
 
     def draw(self, program_id, t_mat):
+        glBindVertexArray(self.vao)
         glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE, t_mat)
 
         for triangle in range(0, len(self.vertices), 3):

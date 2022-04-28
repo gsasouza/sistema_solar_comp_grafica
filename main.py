@@ -58,17 +58,24 @@ if __name__ == '__main__':
         angle += 1
         glUseProgram(color_program_id)
         for cube in cubes:
-            cube.draw(color_program_id, apply_transformations([rotate_x(angle), rotate_z(angle), scale(0.02, 0.02, 0.02)]))
+            cube_mat = apply_transformations([
+                rotate_x(angle),
+                rotate_z(angle),
+            ])
+
+            if blackhole.start:
+                cube.matrix = drag_to_center(cube.matrix, 0.1)
+
+            cube.draw(color_program_id, cube_mat)
 
         glUseProgram(texture_program_id)
 
-        earth.draw_planet(texture_program_id, angle)
         if blackhole.start:
-            blackhole.draw_planet(texture_program_id, angle)
+            blackhole.draw(texture_program_id, blackhole.get_base_matrix())
         else:
-            sun.draw_planet(texture_program_id, angle)
-
-        mars.draw_planet(texture_program_id, angle)
+            earth.draw(texture_program_id, earth.get_base_matrix(angle))
+            sun.draw(texture_program_id, sun.get_base_matrix())
+            mars.draw(texture_program_id, mars.get_base_matrix(angle))
 
         glfw.swap_buffers(window)
 
