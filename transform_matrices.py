@@ -25,6 +25,7 @@ def ortho(l, r, b, t, n, f):
     ry = -(t + b) / (t - b)
     rz = -(f + n) / (f - n)
 
+
 def translate(x, y, z):
     return np.array([
         [1, 0, 0, x],
@@ -42,6 +43,7 @@ def scale(x, y, z):
         [0, 0, 0, 1]
     ])
 
+
 def rotate_z(angle):
     return np.array([
         [math.cos(np.radians(angle)), -math.sin(np.radians(angle)), 0, 0],
@@ -49,6 +51,7 @@ def rotate_z(angle):
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ])
+
 
 def rotate_x(angle):
     return np.array([
@@ -58,13 +61,15 @@ def rotate_x(angle):
         [0, 0, 0, 1]
     ])
 
+
 def rotate_y(angle):
     return np.array([
         [math.cos(np.radians(angle)), 0, math.sin(np.radians(angle)), 0],
         [0, 1, 0, 0],
         [-math.sin(np.radians(angle)), 0, math.cos(np.radians(angle)), 0],
         [0, 0, 0, 1]
-   ] )
+    ])
+
 
 def apply_transformations(matrices):
     result = np.identity(4);
