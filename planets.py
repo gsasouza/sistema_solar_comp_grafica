@@ -6,29 +6,53 @@ from transform_matrices import *
 class Earth(Sphere):
     def __init__(self):
         super().__init__(load_texture('textures/earth_2k.jpg'))
+        self.blackhole_angle = None
 
     def get_base_matrix(self, angle):
         return apply_transformations([
-            rotate_z(angle),
+            rotate_y(angle * 2),
             translate(0.6, 0, 0),
-            scale(0.15, 0.15, 0.15),
-            rotate_y(270),
+            scale(0.10, 0.10, 0.10),
+            rotate_z(270),
             rotate_x(angle)
         ])
 
+    def get_blackhole_matrix(self, angle):
+        if self.blackhole_angle is None:
+            self.blackhole_angle = angle
+        return apply_transformations([
+            rotate_y(self.blackhole_angle * 2),
+            translate(0.6, 0, 0),
+            scale(0.10, 0.10, 0.10),
+            rotate_z(270),
+            rotate_x(angle)
+        ])
 
 class Mars(Sphere):
     def __init__(self):
+        self.blackhole_angle = None
         super().__init__(load_texture('textures/2k_mars.jpg'))
 
     def get_base_matrix(self, angle):
         return apply_transformations([
-            rotate_z(angle),
+            rotate_y(angle),
             translate(-0.8, 0, 0),
-            scale(0.08, 0.08, 0.08),
-            rotate_y(270)
+            scale(0.07, 0.07, 0.07),
+            rotate_z(270),
+            rotate_x(angle)
         ])
 
+    def get_blackhole_matrix(self, angle):
+        if self.blackhole_angle is None:
+            self.blackhole_angle = angle
+
+        matrix = apply_transformations([
+            rotate_y(self.blackhole_angle),
+            translate(-0.8, 0, 0),
+            scale(0.07, 0.07, 0.07),
+        ])
+
+        return drag_to_center(matrix, 0.1)
 
 class Sun(Sphere):
     def __init__(self):

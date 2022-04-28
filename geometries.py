@@ -109,7 +109,7 @@ class Sphere:
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
         glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE,
-                           apply_transformations([self.matrix, t_mat, ]))
+                           apply_transformations([self.matrix, t_mat]))
         texture_sampler = glGetUniformLocation(program_id, "texture_sampler")
 
         glUniform1i(texture_sampler, 0)
@@ -213,20 +213,25 @@ class Cube:
 
 
 class Cylinder:
-    def __init__(self):
+    def __init__(self, texture_id):
+        self.buffer = None
         self.offset = 0
         self.stride = 0
         self.color = None
-        self.texture_id = None
+        self.texture_id = texture_id
         self.position = None
         self.vao = None
         self.vertices = self.create()
+        self.matrix = np.identity(4)
 
-    def get_cylinder_coordinates_by_angle(self, u, h, r):
+    def set_matrix(self, matrix):
+        self.matrix = matrix
+
+    def get_cylinder_coordinates_by_angle(self, u, h, r, s, t):
         x = r * math.cos(u)
         y = r * math.sin(u)
         z = h
-        return x, y, z
+        return x, y, z, s, t
 
     def create(self):
         r = 0.08
@@ -239,7 +244,9 @@ class Cylinder:
 
         vertices_list = []
         for j in range(num_stacks):
+            s = j / (num_stacks - 1)
             for i in range(num_sectors):
+                t = i / (num_sectors - 1)
                 sector_angle = i * sector_step
                 stack_height = j * stack_step
 
@@ -256,10 +263,10 @@ class Cylinder:
                     next_stack_height = (j + 1) * stack_step
 
                 # vertices do poligono
-                p0 = self.get_cylinder_coordinates_by_angle(sector_angle, stack_height, r)
-                p1 = self.get_cylinder_coordinates_by_angle(sector_angle, next_stack_height, r)
-                p2 = self.get_cylinder_coordinates_by_angle(next_sector_angle, stack_height, r)
-                p3 = self.get_cylinder_coordinates_by_angle(next_sector_angle, next_stack_height, r)
+                p0 = self.get_cylinder_coordinates_by_angle(sector_angle, stack_height, r, s, t)
+                p1 = self.get_cylinder_coordinates_by_angle(sector_angle, next_stack_height, r, s, t)
+                p2 = self.get_cylinder_coordinates_by_angle(next_sector_angle, stack_height, r, s, t)
+                p3 = self.get_cylinder_coordinates_by_angle(next_sector_angle, next_stack_height, r, s, t)
 
                 # triangulo 1 (primeira parte do poligono)
                 vertices_list.append(p0)
@@ -274,43 +281,55 @@ class Cylinder:
                 if stack_height == 0:
                     vertices_list.append(p0)
                     vertices_list.append(p2)
-                    vertices_list.append(self.get_cylinder_coordinates_by_angle(0, stack_height, 0))
+                    vertices_list.append(self.get_cylinder_coordinates_by_angle(0, stack_height, 0, s, t))
 
                 if next_stack_height == h:
                     # faz um triangulo a partir do mesmo angulo u, mas com as alturas em h = vn
                     vertices_list.append(p1)
                     vertices_list.append(p3)
-                    vertices_list.append(self.get_cylinder_coordinates_by_angle(0, next_stack_height, 0))
+                    vertices_list.append(self.get_cylinder_coordinates_by_angle(0, next_stack_height, 0, s, t))
 
         total_vertices = len(vertices_list)
-        vertices = np.zeros(total_vertices, [("position", np.float32, 3)])
+        vertices = np.zeros(total_vertices, [("position", np.float32, 5)])
         vertices['position'] = np.array(vertices_list)
 
         return vertices
 
     def prepare(self, program_id):
-        buffer = glGenBuffers(1)
         self.vao = glGenVertexArrays(1)
+        self.buffer = glGenBuffers(1)
         glBindVertexArray(self.vao)
-        glBindBuffer(GL_ARRAY_BUFFER, buffer)
+        glBindBuffer(GL_ARRAY_BUFFER, self.buffer)
 
         glBufferData(GL_ARRAY_BUFFER, self.vertices.nbytes, self.vertices, GL_DYNAMIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, buffer)
+        glBindBuffer(GL_ARRAY_BUFFER, self.buffer)
 
+        # Enable vertex attributes
         stride = self.vertices.strides[0]
-        self.offset = ctypes.c_void_p(0)
 
-        self.position = glGetAttribLocation(program_id, "position")
-        self.color = glGetUniformLocation(program_id, "color")
+        position = glGetAttribLocation(program_id, "position")
+        glEnableVertexAttribArray(position)
+        glVertexAttribPointer(position, 3, GL_FLOAT, False, stride, ctypes.c_void_p(0))
 
-        glEnableVertexAttribArray(self.position)
-        glVertexAttribPointer(self.position, 3, GL_FLOAT, False, stride, ctypes.c_void_p(0))
+        uv = glGetAttribLocation(program_id, "in_uv")
+        glEnableVertexAttribArray(uv)
+        glVertexAttribPointer(uv, 2, GL_FLOAT, False, stride, ctypes.c_void_p(12))
         glBindVertexArray(0)
 
     def draw(self, program_id, t_mat):
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, self.texture_id)
         glBindVertexArray(self.vao)
-        glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE, t_mat)
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+        glUniformMatrix4fv(glGetUniformLocation(program_id, "mat_transformation"), 1, GL_TRUE,
+                           apply_transformations([self.matrix, t_mat]))
+        texture_sampler = glGetUniformLocation(program_id, "texture_sampler")
+
+        glUniform1i(texture_sampler, 0)
 
         for triangle in range(0, len(self.vertices), 3):
-            glUniform4f(self.color, 0.2, 0.2, 0.2, 1.0)
-            glDrawArrays(GL_TRIANGLES, triangle, 3)
+            glDrawArrays(GL_TRIANGLES, triangle, 5)
+
+        glBindVertexArray(0);

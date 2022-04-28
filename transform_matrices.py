@@ -75,7 +75,7 @@ def drag_to_center(matrix, step, remove_on_end = False):
     x = matrix.item((0, 3))
     y = matrix.item((1, 3))
     distance = math.sqrt((x ** 2 + y ** 2))
-    if remove_on_end and distance < 0.05:
+    if remove_on_end and distance < 0.1:
         return scale(0, 0, 0)
     return apply_transformations([matrix, translate(-step * x, -step * y, 0)])
 

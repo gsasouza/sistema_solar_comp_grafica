@@ -31,7 +31,7 @@ def translate_rocket(rocket, key):
     rocket.set_matrix(new_matrix)
 
 
-def create_callback(mars, sun, earth, blackhole):
+def create_callback(mars, sun, rocket, blackhole):
 
     def callback_handler(window, key, scancode, action, mods):
         if key == GLFW_KEY_R:
@@ -42,7 +42,7 @@ def create_callback(mars, sun, earth, blackhole):
         elif key == GLFW_KEY_W or key == GLFW_KEY_S:
             scale_planet(sun, key)
         elif key == GLFW_KEY_UP or key == GLFW_KEY_DOWN or key == GLFW_KEY_LEFT or key == GLFW_KEY_RIGHT:
-            translate_rocket(earth, key)
+            translate_rocket(rocket, key)
 
         if sun.matrix[0][0] < 0.2:
             blackhole.start = True

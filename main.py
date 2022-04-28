@@ -19,7 +19,7 @@ def read_file(filename):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    window = create_glfw_window(720, 720)
+    window = create_glfw_window(1280, 1280)
 
     texture_program_id = load_shaders(read_file('shaders/texture_vert.glsl'), read_file('shaders/texture_frag.glsl'))
     color_program_id = load_shaders(read_file('shaders/color_vert.glsl'), read_file('shaders/color_frag.glsl'))
@@ -36,6 +36,9 @@ if __name__ == '__main__':
     blackhole = Blackhole()
     blackhole.prepare(texture_program_id)
 
+    rocket = Cylinder(load_texture('textures/space_ship.jpg'))
+    rocket.prepare(texture_program_id)
+
     cubes = []
     for _ in range(20):
         cube = Cube()
@@ -47,7 +50,7 @@ if __name__ == '__main__':
 
     angle = 0
 
-    callback_handler = create_callback(mars, sun, earth, blackhole)
+    callback_handler = create_callback(mars, sun, rocket, blackhole)
     glfw.set_key_callback(window, callback_handler)
 
     while not glfw.window_should_close(window):
@@ -64,14 +67,23 @@ if __name__ == '__main__':
             ])
 
             if blackhole.start:
-                cube.matrix = drag_to_center(cube.matrix, 0.1)
+                cube.matrix = drag_to_center(cube.matrix, 1, True)
 
             cube.draw(color_program_id, cube_mat)
 
         glUseProgram(texture_program_id)
 
+        rocket.draw(texture_program_id, apply_transformations([
+                scale(0.3, 0.3, 0.3),
+                translate(0, 1, 1),
+                rotate_x(90),
+                rotate_z(angle)
+            ]))
+
         if blackhole.start:
             blackhole.draw(texture_program_id, blackhole.get_base_matrix())
+            # earth.draw(texture_program_id, earth.get_blackhole_matrix(angle))
+            # mars.draw(texture_program_id, mars.get_blackhole_matrix(angle))
         else:
             earth.draw(texture_program_id, earth.get_base_matrix(angle))
             sun.draw(texture_program_id, sun.get_base_matrix())
