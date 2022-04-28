@@ -63,7 +63,7 @@ if __name__ == '__main__':
         for cube in cubes:
             cube_mat = apply_transformations([
                 rotate_x(angle),
-                rotate_z(angle),
+                rotate_z(2 * angle),
             ])
 
             if blackhole.start:
@@ -74,8 +74,8 @@ if __name__ == '__main__':
         glUseProgram(texture_program_id)
 
         rocket.draw(texture_program_id, apply_transformations([
+                translate(0.5, 0.5, 1),
                 scale(0.3, 0.3, 0.3),
-                translate(0, 1, 1),
                 rotate_x(90),
                 rotate_z(angle)
             ]))
